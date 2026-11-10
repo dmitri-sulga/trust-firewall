@@ -692,6 +692,7 @@ body{overflow-x:hidden;overflow-x:clip}
 .tf-tile-note b,.tf_graph-layoutnote b{color:var(--ink);font-weight:600}
 .tf_graph-hint,.tf_pnl-src{font-size:12px;line-height:1.4;color:var(--ink-soft)}
 .tf_graph-honest,.tf_gps-honestynote{font-size:13px;line-height:1.6}
+.tf-para{display:block}.tf-para+.tf-para{margin-top:.6em}
 .tf-src{color:var(--accent-text);text-decoration:underline;text-underline-offset:2px}
 .tf-honesty p:last-child{margin-bottom:0}
 
@@ -766,7 +767,7 @@ body{overflow-x:hidden;overflow-x:clip}
 .tf_graph-strip-title{font-size:13px;font-weight:600;color:var(--ink)}
 .tf_graph-sweep{font-family:var(--font-body);font-size:12.5px;color:var(--ink-soft);background:transparent;
   border:1px solid var(--line-strong);border-radius:var(--r-sm);min-height:32px;padding:4px 12px;cursor:pointer;
-  white-space:nowrap;transition:border-color .15s,color .15s}
+  white-space:nowrap;min-width:122px;text-align:center;transition:border-color .15s,color .15s}
 .tf_graph-sweep:hover{color:var(--ink);border-color:var(--ink-faint)}
 .tf_graph-sweep[aria-pressed="true"]{color:var(--ink);border-color:var(--accent)}
 .tf_graph-strip-sub{font-size:12px;line-height:1.45;color:var(--ink-soft)}
@@ -976,7 +977,7 @@ body{overflow-x:hidden;overflow-x:clip}
       </div>
 
       <p class="tf_gps-readnote">
-        Tracks are synthetic. The rule-breaking tracks are deliberately clear-cut, built past each threshold to show which rule fires, not how often it would fire on real traffic. Why location forgery is worth modelling: according to an indictment unsealed in the Eastern District of New York in August 2024, two men allegedly sold hacked smartphones and apps, one of them a GPS-spoofing app, to more than 800 rideshare drivers, and the spoofing was used to collect what the press release calls millions of dollars in fraudulent surge fees between November 2018 and August 2024. The release also says outdated app versions kept the tampering from being detected, which is a device-integrity gap that track physics does not close. Source: <a class="tf-src" href="https://www.justice.gov/usao-edny/pr/two-individuals-charged-multi-million-dollar-scheme-defraud-rideshare-customers" rel="noopener">US Attorney's Office, EDNY, press release</a>
+        Tracks are synthetic. The rule-breaking tracks are deliberately clear-cut, built past each threshold to show which rule fires, not how often it would fire on real traffic. Why location forgery is worth modelling: according to an indictment unsealed in the Eastern District of New York in August 2024, two defendants allegedly sold hacked smartphones and fraudulent apps to more than 800 rideshare drivers, one of them a GPS-spoofing app that made a driver appear to be in an area with surge pricing. The release says that, as alleged, between November 2018 and August 2024 the scheme caused passengers to pay millions of dollars in fraudulent surge fees. It also says the defendants installed outdated versions of the rideshare app on the devices so that security features in newer versions would not detect the scheme's apps, which is a device-integrity gap that track physics does not close. Source: <a class="tf-src" href="https://www.justice.gov/usao-edny/pr/two-individuals-charged-multi-million-dollar-scheme-defraud-rideshare-customers" rel="noopener">US Attorney's Office, EDNY, press release</a>
       </p>
     </div>
   </div>
@@ -1007,10 +1008,10 @@ body{overflow-x:hidden;overflow-x:clip}
       <div class="tf_graph-notes">
         <p class="tf_graph-layoutnote">Position is ground truth: each ring's accounts sit together whether or not the detector linked them, and every account keeps its place when an attack slider moves (the ring-size slider re-scales the picture). Colour and outline are the detector's output.</p>
         <p class="tf_graph-layoutnote"><b>Ring sizes</b> scales the six rings (none goes below two accounts); legitimate accounts scale with them, so the fraud share stays put (it is shown under the counters). This is not an attack, but small rings are harder: a two-account ring is a single link, which is also what two people sharing a phone look like. On its own it scores at most <span id="tf_graph-pair-score">2.0</span>, below the cut of <span id="tf_graph-pair-cut">2.25</span>, so it is flagged only if a stray link joins it to a larger cluster. A larger setting contains the smaller one's accounts and the links inside each ring, so the tiles move without a new random draw. The path is still not strictly monotone: an added account can itself be one the detector misses, and a stray link can pull a legitimate account into a cluster.</p>
-        <p class="tf_graph-layoutnote"><b>Proxy obfuscation</b> gives more ring accounts their own fingerprint, removes links inside rings and adds random links across the population. It is not strictly monotone either: an added random link can merge two fragments back above the cut.</p>
+        <p class="tf_graph-layoutnote"><b>Proxy obfuscation</b> gives more ring accounts their own fingerprint, removes links inside rings and adds random links across the population. It is not strictly monotone either: an added random link can merge two fragments back above the cut. The name is shorthand: a proxy or an anti-detect browser hides a shared device or IP address, not a shared card or delivery address, yet the slider thins ring links of every kind at the same rate, so it hands the attacker more than proxies alone would.</p>
         <p class="tf_graph-layoutnote"><b>Temporal spread</b> spreads a ring's sign-ups over more cohorts and removes links between cohorts. This assumes links are only drawn between accounts seen within the same time window; a shared card links two accounts whenever they sign up, and against that this attack does nothing. The scale starts at 10%: up to there every ring is still a single cohort. Between two steps the tiles can hold still while links disappear (watch the link count); they move when a cluster drops below the cut or splits.</p>
         <p class="tf_graph-layoutnote" id="tf_graph-note-budget"></p>
-        <p class="tf_graph-honest">Where this method stops working: the detector sees <b>only the link graph</b>. Two evasions are modelled. Proxy obfuscation gives accounts their own fingerprints, so the links inside a ring thin out; temporal spread registers a ring in separate cohorts, so it reads as unrelated groups. Push both sliders right and recall and AUC collapse. That collapse is arithmetic, not a discovery: the score is size times density, and the attack removes density. It is shown because a measurement that cannot fail is not a measurement; if removing the only signal left the AUC high, the evaluation would be leaking. The number worth arguing about is not the AUC, it is how few links a ring account can keep inside its ring before the graph stops seeing the ring; the line over the chart gives it for the settings above. Past that point no amount of graph work recovers the ring and a behavioural signal has to take over. The starting point is built the same way: a share of ring accounts is generated with their own fingerprint so that the detector has something to miss even with both sliders at their lowest. The false-positive rate is just as much a product of how this population is built: legitimate accounts here link only in pairs and chains, which sit on the floor of the score, so every false positive on screen is a legitimate account with a stray link into a ring. Real households, offices and fleet cards form triangles, which this score puts at 3.0 and flags, so on real data the false-positive rate would not be this low. These tiles describe this synthetic population, not a detector's skill on live traffic.</p>
+        <p class="tf_graph-honest"><span class="tf-para">Where this method stops working: the detector sees <b>only the link graph</b>. Two evasions are modelled. Proxy obfuscation gives accounts their own fingerprints, so the links inside a ring thin out; temporal spread registers a ring in separate cohorts, so it reads as unrelated groups. Push both sliders right and recall and AUC collapse. That collapse is arithmetic, not a discovery: the score is size times density, and the attack removes density. It is shown because a measurement that cannot fail is not a measurement; if removing the only signal left the AUC high, the evaluation would be leaking.</span><span class="tf-para">The number worth arguing about is not the AUC, it is how few links a ring account can keep inside its ring before the graph stops seeing the ring; the line over the chart gives it for the settings above. Past that point no amount of graph work recovers the ring and a behavioural signal has to take over.</span><span class="tf-para">The starting point is built the same way: a share of ring accounts is generated with their own fingerprint so that the detector has something to miss even with both sliders at their lowest. The false-positive rate is just as much a product of how this population is built: legitimate accounts here link only in pairs and chains, which sit on the floor of the score, so every false positive on screen is a legitimate account with a stray link into a ring. Real households, offices and fleet cards form triangles, which this score puts at 3.0 and flags, so on real data the false-positive rate would not be this low. These tiles describe this synthetic population, not a detector's skill on live traffic.</span></p>
       </div>
     </div>
 
@@ -1543,12 +1544,13 @@ body{overflow-x:hidden;overflow-x:clip}
     smooth: genSmooth,
   };
 
-  // Three-fix moving average, used for drawing the path only.
-  function smooth(pts) {
+  // Three-fix moving average, used for drawing the path only. It never averages
+  // across a jump (brk[i]: jump between fix i-1 and fix i), and the path breaks there.
+  function smooth(pts, brk) {
     var out = [];
     for (var i = 0; i < pts.length; i++) {
-      var a = Math.max(0, i - 1),
-        bb = Math.min(pts.length - 1, i + 1),
+      var a = i > 0 && !(brk && brk[i]) ? i - 1 : i,
+        bb = i < pts.length - 1 && !(brk && brk[i + 1]) ? i + 1 : i,
         sx = 0,
         sy = 0,
         n = 0;
@@ -1557,7 +1559,7 @@ body{overflow-x:hidden;overflow-x:clip}
         sy += pts[k].y;
         n++;
       }
-      out.push({ x: sx / n, y: sy / n, t: pts[i].t });
+      out.push({ x: sx / n, y: sy / n, t: pts[i].t, brk: !!(brk && brk[i]) });
     }
     return out;
   }
@@ -1810,7 +1812,7 @@ body{overflow-x:hidden;overflow-x:clip}
       maxJumpIdx: maxJumpIdx,
       teleported: teleported,
       perPoint: perPoint,
-      sm: smooth(pts),
+      sm: smooth(pts, isTele),
       winSpeed: winSpeed,
     };
   }
@@ -2183,10 +2185,10 @@ body{overflow-x:hidden;overflow-x:clip}
     ctx.beginPath();
     for (var i = 0; i <= upto; i++) {
       var q = toPx(arr[i]);
-      if (i === 0) ctx.moveTo(q.x, q.y);
+      if (i === 0 || arr[i].brk) ctx.moveTo(q.x, q.y);
       else ctx.lineTo(q.x, q.y);
     }
-    if (interp && upto < arr.length - 1 && frac > 0) {
+    if (interp && upto < arr.length - 1 && frac > 0 && !arr[upto + 1].brk) {
       var e = easeInOut(frac),
         a = toPx(arr[upto]),
         b = toPx(arr[upto + 1]);
@@ -2422,6 +2424,7 @@ body{overflow-x:hidden;overflow-x:clip}
     for (var t = 0; t < trailN; t++) {
       var i = upto - t;
       if (i < 1) break;
+      if (sm[i].brk) continue;
       var A = toPx(sm[i - 1]),
         B = t === 0 ? pos : toPx(sm[i]);
       var a2 = 1 - t / trailN,
@@ -2831,7 +2834,7 @@ body{overflow-x:hidden;overflow-x:clip}
     var el = S.root.querySelector("#tf_gps-method");
     if (!el) return;
     el.innerHTML =
-      "Fix-to-fix speed is the first thing GPS noise destroys, so the raw 1-second speed is shown only as a diagnostic. The speed rule works on displacement over a " +
+      "<span class=\"tf-para\">Fix-to-fix speed is the first thing GPS noise destroys, so the raw 1-second speed is shown only as a diagnostic. The speed rule works on displacement over a " +
       TH.WINDOW_S +
       "-second window; one such reading is good to σ<sub>v</sub> ≈ √2·σ / " +
       TH.WINDOW_S +
@@ -2845,11 +2848,11 @@ body{overflow-x:hidden;overflow-x:clip}
       TH.SPEED_KMH +
       " km/h, clears the track when every stretch is that far below, and says NO DECISION otherwise, unless another rule fired. " +
       TH.DECIDE_SE +
-      " rather than 2, because the hardest-testing stretch is picked out of many. So a long stretch stays decidable where a short one does not: that is the difference between Implausible speed and Speed burst as you raise the noise. Two limits of this arithmetic. It assumes the position error is independent from fix to fix; real GPS error drifts over seconds, the estimator would then under-read σ and the band would be too narrow. Even with independent errors, σ is read from a few dozen fixes and can be off by a tenth or two, and the band moves with it. And the average is not the tightest estimator possible (a line fitted to all the fixes of a stretch would be somewhat tighter), so the exact noise level at which the burst stops being decidable belongs to this rule, not to GPS. The jump limit is " +
+      " rather than 2, because the hardest-testing stretch is picked out of many. So a long stretch stays decidable where a short one does not: that is the difference between Implausible speed and Speed burst as you raise the noise.</span><span class=\"tf-para\">Three limits of this arithmetic. It assumes the position error is independent from fix to fix; real GPS error drifts over seconds, so the estimator would under-read σ and the band would be too narrow. Even with independent errors, σ is read from a few dozen fixes and can be off by a tenth or two, and the band moves with it. And the average is not the tightest estimator possible (a line fitted to all the fixes of a stretch would be somewhat tighter), so the exact noise level at which the burst stops being decidable belongs to this rule, not to GPS.</span><span class=\"tf-para\">The jump limit is " +
       TH.TELEPORT_M +
       " m plus " +
       TH.TELEPORT_SIGMAS +
-      " standard deviations of fix-to-fix noise; the mock flag and the cell check do not depend on GPS noise. The mock flag is only as good as the device: a tampered OS can hide it. The cell check assumes the app can read the serving cell, which not every mobile platform allows. And none of these checks sees a spoof that obeys physics, which is what the Smooth spoof scenario shows.";
+      " standard deviations of fix-to-fix noise; the mock flag and the cell check do not depend on GPS noise. The mock flag is only as good as the device: a tampered OS can hide it. The cell check assumes the app can read the serving cell, which not every mobile platform allows, and its tolerance is set for the equal square cells of this synthetic map: real cells reach from a few hundred metres in a city centre to tens of kilometres in open country, so a real tolerance has to come per cell from a cell database. And none of these checks sees a spoof that obeys physics, which is what the Smooth spoof scenario shows.</span>";
     renderLimits();
   }
 
@@ -4411,7 +4414,7 @@ body{overflow-x:hidden;overflow-x:clip}
       fi++
     ) {
       var CB = flaggedComps[fi];
-      var label = CB.nodes.length + " accounts";
+      var label = CB.nodes.length + " flagged";
       var tw = ctx.measureText(label).width;
       var bw = tw + 4,
         bh = 14;
@@ -5835,7 +5838,9 @@ body{overflow-x:hidden;overflow-x:clip}
     var be;
     if (res.caught <= 0) {
       be =
-        "Break-even: with recall at 0% nothing is caught, so every wrongful block is a pure loss.";
+        res.wrongful > 0
+          ? "Break-even: with recall at 0% nothing is caught, so every wrongful block is a pure loss."
+          : "Break-even: with recall and the false-positive rate both at 0% the detector blocks nothing, so it neither saves nor costs anything.";
     } else if (res.breakEvenFpr >= 1) {
       be =
         "Break-even: at these inputs no false-positive rate makes the detector lose money (the break-even rate would be above 100%).";
@@ -5845,6 +5850,9 @@ body{overflow-x:hidden;overflow-x:clip}
         net === 0
           ? [pct(res.breakEvenFpr, 2), pct(s.fprPct / 100, 2)]
           : pctPair(res.breakEvenFpr, s.fprPct / 100, 2);
+      // A positive rate never prints as zero.
+      if (res.breakEvenFpr > 0 && res.breakEvenFpr < 0.00005)
+        fp2 = ["below 0.01%", pct(s.fprPct / 100, 2)];
       be =
         "Break-even false-positive rate at these inputs: " +
         fp2[0] +
@@ -5858,6 +5866,7 @@ body{overflow-x:hidden;overflow-x:clip}
       res.precision === null || net === 0
         ? [pct(res.breakEvenPrecision), res.precision === null ? "" : pct(res.precision)]
         : pctPair(res.breakEvenPrecision, res.precision, 1);
+    if (res.precision > 0 && res.precision < 0.0005) pr2[1] = "below 0.1%";
     be +=
       " Put as precision: at least C ÷ (C + L) = " +
       pr2[0] +
