@@ -20,7 +20,7 @@ Open `index.html` in a modern browser. There is no build step, no server and no 
 
 ## Related
 
-[trip-physics](https://github.com/dmitri-sulga/trip-physics) is an evaluation harness in Python by the same author.
+[trip-physics](https://github.com/dmitri-sulga/trip-physics) is an evaluation harness in Python, built with AI tools I direct.
 
 ## Licence
 
