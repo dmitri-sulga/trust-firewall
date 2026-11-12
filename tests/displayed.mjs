@@ -108,6 +108,7 @@ const readGps = () =>
         b.textContent.trim()
       ),
       reasonText: t(v, ".tf_gps-reasons"),
+      abstText: t(v, ".tf_gps-abstmsg"),
       tiles: [...root.querySelectorAll("#tf_gps-metrics .tf_gps-tile")].map(
         (x) => ({
           sub: t(x, ".tf_gps-tsub"),
@@ -156,6 +157,35 @@ function checkGps(e, d) {
     grab(c, "se", d.note, /= ([\d.]+) km\/h and the band/),
     e.se
   );
+  // The NO DECISION sentence names both the noise estimated from the fixes and the noise
+  // the track was drawn with (the slider value), so it cannot disagree with the slider.
+  eq(c, "abstain sentence present", d.abstText !== "", e.verdict === "NO DECISION");
+  if (e.verdict === "NO DECISION") {
+    eq(
+      c,
+      "abstain: estimated noise",
+      grab(c, "abst sigma", d.abstText, /With noise estimated from the fixes at about (\d+) m/),
+      e.sigma0
+    );
+    eq(
+      c,
+      "abstain: drawn noise",
+      grab(c, "abst drawn", d.abstText, / m \(drawn with (\d+) m\), that average/),
+      String(e.noise)
+    );
+    eq(
+      c,
+      "abstain: band",
+      grab(c, "abst band", d.abstText, /only good to ± ([\d.]+) km\/h/),
+      e.band
+    );
+    eq(
+      c,
+      "abstain: stretch",
+      grab(c, "abst stretch", d.abstText, /hardest reads (\d+) km\/h/),
+      e.sustained
+    );
+  }
   if (e.reasons.includes("TELEPORT")) {
     eq(
       c,
@@ -186,11 +216,43 @@ const gpsAt = (sc, nz) =>
     [sc, nz]
   );
 
-// Defaults first, untouched: Teleport at 8 m.
+// Defaults first, untouched: the page opens on Speed burst at 20 m of noise.
+const opened = await page.evaluate(() => {
+  const r = document.getElementById("tf_gps-root");
+  return {
+    pressed: [...r.querySelectorAll("[data-tf-gps-scn][aria-pressed=true]")].map(
+      (b) => b.getAttribute("data-tf-gps-scn")
+    ),
+    slider: r.querySelector("#tf_gps-noise").value,
+    label: r.querySelector("#tf_gps-noiseval").textContent.replace(/\s/g, ""),
+  };
+});
+eq("GPS opening state", "scenario pressed", opened.pressed.join(","), "burst");
+eq("GPS opening state", "noise slider", opened.slider, "20");
+eq("GPS opening state", "noise label", opened.label, "20m");
 const gpsDefault = EXP.gps.find(
-  (e) => e.scenario === "teleport" && e.noise === 8
+  (e) => e.scenario === "burst" && e.noise === 20
 );
 checkGps(gpsDefault, await readGps());
+
+// The link preview quotes the ring graph's "Where it breaks" line at the defaults.
+{
+  const s = EXP.ring.states[0].strip;
+  const metas = await page.evaluate(() =>
+    ["meta[property='og:description']", "meta[name='twitter:description']"].map(
+      (q) => document.querySelector(q).content
+    )
+  );
+  for (const [i, t] of metas.entries()) {
+    const c = i ? "twitter:description" : "og:description";
+    const mt =
+      /ring graph first breaks at (\d+)% proxy obfuscation, where a ring account keeps ([\d.]+) links inside its ring, against ([\d.]+) with none\./.exec(
+        t
+      ) || [];
+    eq(c, "first break % / links at the break / with no obfuscation", mt.slice(1).join(" "),
+      [s.first_crit, s.unit_links, s.zero_links].join(" "));
+  }
+}
 
 const lim = await page.evaluate(() => ({
   bz: document.getElementById("tf_gps-blindzone").textContent,

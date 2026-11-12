@@ -33,7 +33,8 @@ def gps():
             "band": shown(r["band"], 1), "se": shown(r["se"], 2),
             "max_jump": shown(r["max_jump"]), "jump_limit": shown(r["jump_limit"]),
             "cell_miss": r["cell_miss"], "mock": f'{r["mock"]}/{r["n"]}',
-            "sigma": shown(r["sigma"], 1), "sigma_v": shown(r["sigma_v"], 1),
+            "sigma": shown(r["sigma"], 1), "sigma0": shown(r["sigma"], 0),
+            "sigma_v": shown(r["sigma_v"], 1),
             "raw_peak": shown(r["raw_peak"]), "raw_over": r["raw_over"],
             "raw_count": r["raw_count"],
         })

@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Trust Firewall — Dmitri Sulga</title>
-<meta name="description" content="Two fraud detectors (GPS physics and a fraud-ring graph) and a detector cost calculator, built and attacked with AI tools I direct, on synthetic data, to find where they break.">
+<meta name="description" content="Two fraud detectors (GPS physics and a fraud-ring graph) and a detector cost calculator, built and attacked with AI tools I direct, on synthetic data. Not a measured result on real traffic.">
 <meta name="author" content="Dmitri Sulga">
 <meta name="theme-color" content="#F1F0EA" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0D0F12" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Trust Firewall — Dmitri Sulga">
-<meta property="og:description" content="Two fraud detectors and a detector cost calculator, built and attacked with AI tools I direct, on synthetic data. Not a measured result on real traffic.">
+<meta property="og:description" content="Two fraud detectors and a detector cost calculator, built and attacked with AI tools I direct, on synthetic data. At the defaults the ring graph first breaks at 55% proxy obfuscation, where a ring account keeps 2.6 links inside its ring, against 10.5 with none. Not a measured result on real traffic.">
 <meta property="og:url" content="https://dmitri-sulga.github.io/trust-firewall/">
 <meta property="og:image" content="https://dmitri-sulga.github.io/trust-firewall/og.png">
 <meta property="og:image:width" content="1200">
@@ -18,7 +18,7 @@
 <meta property="og:image:alt" content="Trust Firewall — fraud detectors by Dmitri Sulga">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Trust Firewall — Dmitri Sulga">
-<meta name="twitter:description" content="Two fraud detectors and a detector cost calculator, built and attacked with AI tools I direct, on synthetic data, to find where they break.">
+<meta name="twitter:description" content="Two fraud detectors and a detector cost calculator, built and attacked with AI tools I direct, on synthetic data. At the defaults the ring graph first breaks at 55% proxy obfuscation, where a ring account keeps 2.6 links inside its ring, against 10.5 with none. Not a measured result on real traffic.">
 <meta name="twitter:image" content="https://dmitri-sulga.github.io/trust-firewall/og.png">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='3' width='26' height='26' rx='8' fill='%23E3F0E8'/%3E%3Crect x='8' y='8' width='16' height='16' rx='5' fill='%2312995C'/%3E%3C/svg%3E">
 <style>
@@ -169,6 +169,8 @@ body{margin:0;font-family:var(--font-body);font-size:var(--fs-body);line-height:
 .tf-honesty p{color:var(--ink-soft);font-size:var(--fs-lead);line-height:1.6;
   max-width:76ch;margin:0 0 var(--s-3);overflow-wrap:break-word}
 .tf-honesty p b{color:var(--ink);font-weight:600}
+.tf-honesty p.tf-related{margin:var(--s-4) 0 0;padding-top:var(--s-3);border-top:1px solid var(--line)}
+.tf-related .tf-src{overflow-wrap:anywhere}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 @media (max-width:820px){
   :root{--fs-title:25px;--fs-hero:26px}
@@ -593,6 +595,8 @@ canvas.tf_graph-canvas,#tf_graph-canvas{touch-action:manipulation}
   .tf_gps-readnote{margin-top:4px}
 }
 @media (max-width:520px){.tf_gps-tiles{grid-template-columns:1fr}}
+@media (max-width:900px){.tf_gps-tile{column-gap:8px}.tf_gps-spark{width:48px}}
+@media (max-width:340px){.tf_gps-spark{width:36px}}
 @media (max-width:900px){
   .tf_gps-spark{flex:0 1 auto;min-width:0}
   .tf_gps-tlab,.tf_gps-tsub,.tf_gps-tthr{white-space:normal;overflow:visible;text-overflow:clip}
@@ -894,7 +898,7 @@ body{overflow-x:hidden;overflow-x:clip}
     </div>
   </header>
 
-  <h1 class="tf-h1">I direct AI tools to build fraud detectors and find where they&nbsp;break.</h1>
+  <h1 class="tf-h1">I direct AI tools to build fraud detectors, then attack&nbsp;them.</h1>
   <p class="tf-sub">Two detectors and a cost calculator on synthetic data, not a measured result on real traffic. Move the sliders to find where each method stops holding.</p>
   <noscript><p class="tf-sub">Everything on this page is computed in the browser. With JavaScript switched off the instruments below stay empty.</p></noscript>
 
@@ -907,7 +911,7 @@ body{overflow-x:hidden;overflow-x:clip}
   <div class="tf-modulehead" id="tf-modulehead">
     <div class="tf-eyebrow" id="tf-eyebrow">Module 01 · GPS physics</div>
     <h2 class="tf-module-title" id="tf-module-title">Does this track obey physics?</h2>
-    <p class="tf-lead" id="tf-module-lead">Four checks on a GPS track: jumps, sustained speed, the mock-location flag, cell towers. Raise the noise on Speed burst to watch the speed rule stop deciding; Smooth spoof is the attack none of them sees.</p>
+    <p class="tf-lead" id="tf-module-lead">Four checks: jumps, speed, mock flag, cell towers. Lower the noise to watch the speed rule decide; Smooth spoof is the attack none of them sees.</p>
   </div>
 
   <main class="tf-stack">
@@ -918,9 +922,9 @@ body{overflow-x:hidden;overflow-x:clip}
   <div class="tf_gps-controlrow">
     <div class="tf_gps-controls" role="group" aria-label="GPS track scenarios">
       <button class="tf_gps-scn" type="button" data-tf-gps-scn="valid" aria-pressed="false">Valid</button>
-      <button class="tf_gps-scn" type="button" data-tf-gps-scn="teleport" aria-pressed="true">Teleport</button>
+      <button class="tf_gps-scn" type="button" data-tf-gps-scn="teleport" aria-pressed="false">Teleport</button>
       <button class="tf_gps-scn" type="button" data-tf-gps-scn="speed" aria-pressed="false">Implausible speed</button>
-      <button class="tf_gps-scn" type="button" data-tf-gps-scn="burst" aria-pressed="false">Speed burst</button>
+      <button class="tf_gps-scn" type="button" data-tf-gps-scn="burst" aria-pressed="true">Speed burst</button>
       <button class="tf_gps-scn" type="button" data-tf-gps-scn="mock" aria-pressed="false">Mock-location</button>
       <button class="tf_gps-scn" type="button" data-tf-gps-scn="cell" aria-pressed="false">Cell-tower</button>
       <button class="tf_gps-scn" type="button" data-tf-gps-scn="smooth" aria-pressed="false">Smooth spoof</button>
@@ -928,9 +932,9 @@ body{overflow-x:hidden;overflow-x:clip}
     <div class="tf_gps-noisectl">
       <label class="tf_gps-noiselab" for="tf_gps-noise">
         <span>GPS noise, σ per axis</span>
-        <span id="tf_gps-noiseval" class="tf_gps-noiseval">8&#8201;m</span>
+        <span id="tf_gps-noiseval" class="tf_gps-noiseval">20&#8201;m</span>
       </label>
-      <input id="tf_gps-noise" class="tf_gps-slider" type="range" min="4" max="60" step="2" value="8" aria-label="GPS position noise in metres" aria-valuetext="8 metres">
+      <input id="tf_gps-noise" class="tf_gps-slider" type="range" min="4" max="60" step="2" value="20" aria-label="GPS position noise in metres" aria-valuetext="20 metres">
       <div class="tf_gps-noisescale"><span>4&#8201;m</span><span>60&#8201;m</span></div>
     </div>
   </div>
@@ -1238,6 +1242,7 @@ body{overflow-x:hidden;overflow-x:clip}
     </div>
     <p>Everything on this page runs on <b>synthetic data only</b>: no company's data and no production logs. The same seed gives the same numbers on every load, and every detection threshold is a named constant with a comment next to it in the page source.</p>
     <p>It shows <b>mechanics</b>: how each detector decides, and the point where its method stops holding. It does <b>not</b> show performance on real traffic. That can only be measured on production logs, with the metric and the false-positive budget fixed before the first run.</p>
+    <p class="tf-related">Related: <a class="tf-src" href="https://github.com/dmitri-sulga/refund-decision-eval" rel="noopener">github.com/dmitri-sulga/refund-decision-eval</a> is an evaluation of a local language model deciding refunds on disputed card charges, scored against what the companies recorded. Its result is negative: by the study&#8217;s measure (kappa against the record), no model scored above a simple lookup of each card issuer&#8217;s past payout rate.</p>
   </aside>
 
   <footer class="tf-signoff">
@@ -1250,7 +1255,7 @@ body{overflow-x:hidden;overflow-x:clip}
 (function(){
   "use strict";
   var HEADS={
-    m1:{eyebrow:"Module 01 · GPS physics",title:"Does this track obey physics?",lead:"Four checks on a GPS track: jumps, sustained speed, the mock-location flag, cell towers. Raise the noise on Speed burst to watch the speed rule stop deciding; Smooth spoof is the attack none of them sees."},
+    m1:{eyebrow:"Module 01 · GPS physics",title:"Does this track obey physics?",lead:"Four checks: jumps, speed, mock flag, cell towers. Lower the noise to watch the speed rule decide; Smooth spoof is the attack none of them sees."},
     m2:{eyebrow:"Module 02 · Fraud-ring graph",title:"Many accounts, one operator",lead:"Accounts that share a device, card or address form clusters; a cluster is scored by size times density and flagged above a cut set by a false-positive budget. Raise proxy obfuscation to find where the graph alone stops seeing the rings."},
     m3:{eyebrow:"Module 03 · Cost model",title:"When does a detector pay for itself?",lead:"A calculator, not a measurement. Six inputs, one formula, every constant on the screen: what a detector prevents, what its wrongful blocks cost, and the false-positive rate at which the two cancel out."}
   };
@@ -1827,8 +1832,8 @@ body{overflow-x:hidden;overflow-x:clip}
     dpr: 1,
     cssW: 0,
     cssH: 0,
-    scenario: "teleport",
-    noise: 8,
+    scenario: "burst",
+    noise: 20,
     track: null,
     res: null,
     raf: 0,
@@ -2699,15 +2704,17 @@ body{overflow-x:hidden;overflow-x:clip}
       body =
         '<p class="tf_gps-abstmsg">The stretch that tests the limit hardest reads ' +
         stretchText(m) +
-        ". With noise of about " +
+        ". With noise estimated from the fixes at about " +
         fmt(m.sigma, 0) +
-        " m that average is only good to ± " +
+        " m (drawn with " +
+        S.noise +
+        " m), that average is only good to ± " +
         fmt(m.band, 1) +
         " km/h (" +
         TH.DECIDE_SE +
         " standard errors), so it cannot be placed on either side of the " +
         TH.SPEED_KMH +
-        " km/h limit. No other rule fired, and the detector abstains instead of flagging the track or calling it clean; the trip goes to another signal or to a person.</p>";
+        " km/h limit. No other rule fired, so the detector abstains; the trip goes to another signal or to a person.</p>";
     } else if (r.reasons.length) {
       body =
         '<ul class="tf_gps-reasons">' +

@@ -37,7 +37,42 @@ _MASTER = m.master(m.RING_SEED)
 
 
 class GpsDefault(unittest.TestCase):
-    """Module 1 as it opens: Teleport at 8 m of noise per axis."""
+    """Module 1 as it opens: Speed burst at 20 m of noise per axis, where the speed rule
+    abstains (NO DECISION) and no other rule fires."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.r = m.analyze(m.track("burst", 20))
+
+    def test_verdict(self):  # "NO DECISION"; "No other rule fired, and the detector abstains"
+        self.assertEqual(self.r["verdict"], "NO DECISION")
+        self.assertEqual(self.r["reasons"], [])
+        self.assertEqual(self.r["speed_state"], "band")  # "inside the band: ... cannot decide"
+
+    def test_speed_band(self):
+        # "reads 197 km/h, averaged over 6 consecutive 10-s readings"; "σv·√6 / 6 = 5.04 km/h
+        # and the band is 180 ± 20.2 km/h"
+        self.assertEqual(shown(self.r["sustained"]), "197")
+        self.assertEqual(self.r["run_len"], 6)
+        self.assertEqual(shown(self.r["se"], 2), "5.04")
+        self.assertEqual(shown(self.r["band"], 1), "20.2")
+
+    def test_noise_estimate(self):  # "σ ≈ 24.2 m (drawn with 20 m; this track reads 21% high)"
+        self.assertEqual(shown(self.r["sigma"], 1), "24.2")
+        self.assertEqual(m.js_round((self.r["sigma"] / 20 - 1) * 100), 21)
+        self.assertEqual(shown(self.r["sigma_v"], 1), "12.3")  # σv ≈ 12.3 km/h
+
+    def test_tiles(self):
+        self.assertEqual(shown(self.r["max_jump"]), "147")  # largest jump 147 m
+        self.assertEqual(shown(self.r["jump_limit"]), "503")  # "Jump limit: 503 m"
+        self.assertEqual(self.r["cell_miss"], 0)  # Cell mismatch 0
+        self.assertEqual((self.r["mock"], self.r["n"]), (0, 70))  # Mock flag 0/70
+        self.assertEqual(shown(self.r["raw_peak"]), "531")  # raw peak 531 km/h
+        self.assertEqual((self.r["raw_over"], self.r["raw_count"]), (26, 69))  # 26 of 69
+
+
+class GpsTeleport(unittest.TestCase):
+    """Module 1, the Teleport scenario at 8 m of noise per axis."""
 
     @classmethod
     def setUpClass(cls):
@@ -78,7 +113,7 @@ class GpsScenarios(unittest.TestCase):
     def test_slider(self):
         self.assertEqual((m.NOISE_SLIDER[0], m.NOISE_SLIDER[-1]), (4, 60))
 
-    def test_each_rule_fires_at_default_noise(self):
+    def test_each_rule_fires_at_8_m(self):
         expect = {"valid": [], "teleport": ["TELEPORT"], "speed": ["SPEED"],
                   "burst": ["SPEED"], "mock": ["MOCK"], "cell": ["CELL"], "smooth": []}
         for sc, reasons in expect.items():
@@ -255,6 +290,30 @@ class ReadmeText(unittest.TestCase):
 
     def test_budget_sentence(self):
         self.assertIn("within a budget of 3% of legitimate accounts", self.text)
+
+    def test_opening_sentence(self):
+        # README: "The page opens on Speed burst at 20 m, where the speed rule cannot decide
+        # and answers NO DECISION; lower the noise and it flags the burst."
+        mt = re.search(r"opens on Speed burst at (\d+) m, where the speed rule cannot decide "
+                       r"and answers NO DECISION; lower the noise and it flags the burst", self.text)
+        self.assertIsNotNone(mt)
+        nz = int(mt.group(1))
+        self.assertIn(nz, m.NOISE_SLIDER)
+        self.assertEqual(m.analyze(m.track("burst", nz))["verdict"], "NO DECISION")
+        self.assertEqual(m.analyze(m.track("burst", m.NOISE_SLIDER[0]))["verdict"], "FLAGGED")
+
+    def test_links_sentence(self):
+        # README: "... first breaks at 55% proxy obfuscation, where a ring account keeps 2.6
+        # links inside its ring, against 10.5 with no obfuscation."
+        mt = re.search(r"first breaks at (\d+)% proxy obfuscation, where a ring account keeps "
+                       r"([\d.]+) links inside its ring, against ([\d.]+) with no obfuscation",
+                       self.text)
+        self.assertIsNotNone(mt)
+        d = m.strip(_MASTER, m.DEFAULTS[0], m.DEFAULTS[2], CUT)
+        x = d["first_crit"]
+        self.assertEqual(int(mt.group(1)), x)
+        self.assertEqual(mt.group(2), shown(d["pts"][x]["links_per_ring_account"], 1))
+        self.assertEqual(mt.group(3), shown(d["pts"][0]["links_per_ring_account"], 1))
         self.assertEqual(m.FP_BUDGET, 0.03)
 
 
