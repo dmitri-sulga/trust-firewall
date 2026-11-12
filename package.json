@@ -1,0 +1,14 @@
+{
+  "name": "trust-firewall-checks",
+  "private": true,
+  "description": "Checks for the Trust Firewall page: an independent Python re-computation and a headless browser comparison.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "test:numbers": "python3 -m unittest discover -s tests -v",
+    "test:page": "node tests/displayed.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.56.1"
+  }
+}
